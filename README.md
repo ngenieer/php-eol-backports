@@ -17,6 +17,12 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 
 모든 버전에서 "패치 후에만 실패하는 테스트" 목록이 7.4 공식 백포트와 같습니다(9개, [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)). 공식 Docker 이미지 구성 + PHP-FPM 실요청 검증 결과는 [reports/docker.md](reports/docker.md)에 있습니다.
 
+### 패키지(RPM)
+
+| 대상 | 상태 | 비고 |
+|---|---|---|
+| CentOS 7 + Remi php73 | 빌드·검증 완료 ([보고서](reports/el7-remi-php73.md)) | Remi 7.3.33-22 소스 + 이 백포트 → `7.3.33-22.sizlon1.el7`. Remi el7(-14)에서 yum 제자리 업그레이드 확인 |
+
 ## 원칙
 
 - 각 패치는 php-src의 **7.4 공식 EOL 백포트**(Arnaud Le Blanc, Ilija Tovilo)를 기준으로, 의미를 바꾸지 않고 해당 버전 구조에 맞게만 옮깁니다.
@@ -54,6 +60,7 @@ scripts/compare-tests.sh     패치 전/후 빌드 후 PHP 테스트 결과 비�
 docker/Dockerfile            공식 php:<x.y>-fpm 이미지의 PHP를 같은 옵션으로 재빌드(+mysqli, pdo_mysql, gd, opcache)
 docker/verify.sh             버전별 원본/패치본 이미지 빌드 → 테스트 비교 → FPM 스모크 테스트 비교
 docker/smoke/                FPM에 FastCGI 요청: GET/POST 배열, 업로드, 세션, opcache, 메모리 초과 동작
+rpm/el7/                     CentOS 7용 RPM 빌드·검증 (Remi SRPM 기반, 버전별 패치와 spec 변경)
 reports/<x.y>.md             버전별 검증 결과 (최소 구성)
 reports/docker.md            Docker 실환경 검증 결과 (전 버전)
 ```

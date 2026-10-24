@@ -1,0 +1,39 @@
+--- /root/php-backport/remi/srpm22/php73.spec	2026-08-07 09:00:00.000000000 +0900
++++ /root/php-backport/remi/php73.spec	2026-10-25 07:23:47.000000000 +0900
+@@ -117,7 +117,7 @@
+ Summary: PHP scripting language for creating dynamic web sites
+ Name: php
+ Version: %{upver}%{?rcver:~%{rcver}}
+-Release: 22%{?dist}
++Release: 22.sizlon1%{?dist}
+ # All files licensed under PHP version 3.01, except
+ # Zend is licensed under Zend
+ # TSRM is licensed under BSD
+@@ -226,6 +226,7 @@
+ Patch231: php-cve-2026-9672.patch
+ Patch232: php-cve-2026-17543.patch
+ Patch233: php-cve-2026-7260.patch
++Patch234: php-cve-2026-109618-109619.patch
+ 
+ # Fixes for tests (300+)
+ # Factory is droped from system tzdata
+@@ -1241,6 +1242,7 @@
+ %patch -P231 -p1 -b .cve9672
+ %patch -P232 -p1 -b .cve17543
+ %patch -P233 -p1 -b .cve7260
++%patch -P234 -p1 -b .php2shell
+ 
+ # Fixes for tests
+ %if 0%{?fedora} >= 25 || 0%{?rhel} >= 6
+@@ -2335,6 +2337,11 @@
+ 
+ 
+ %changelog
++* Sun Oct 25 2026 sizlon <admin@sizlon.io> - 7.3.33-22.sizlon1
++- Unofficial EL7 rebuild of remi 7.3.33-22 with backport of the PHP 7.4 EOL fix
++  for CVE-2026-109618 (GHSA-w8hw-w9fx-j79w) and CVE-2026-109619 (GHSA-6wmf-4rv5-p3rp)
++  from https://github.com/ngenieer/php-eol-backports
++
+ * Fri Aug  7 2026 Remi Collet <remi@remirepo.net> - 7.3.33-22
+ - Fixed SQL injection via E'...' backslash breakout
+   CVE-2026-17543

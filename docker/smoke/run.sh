@@ -7,9 +7,14 @@ set -u
 W=/smoke/www
 FPM_LOG=/tmp/fpm.log
 
+# Works with the official Docker images (/usr/local) and distro packages (/etc, /usr/sbin).
+FPM_BIN="$(command -v php-fpm || echo /usr/sbin/php-fpm)"
+for d in /usr/local/etc/php-fpm.d /etc/php-fpm.d /etc/opt/remi/*/php-fpm.d; do [ -d "$d" ] && FPM_D="$d" && break; done
 # Older FPM (7.0/7.1) binds a bare port to IPv6, which fails in containers without IPv6.
-printf '[www]\nlisten = 127.0.0.1:9000\n' > /usr/local/etc/php-fpm.d/zzzz-smoke.conf
-php-fpm -F >"$FPM_LOG" 2>&1 &
+# Worker stderr (where the patched PHP writes its fatal error) is captured into the FPM log.
+printf '[www]\nlisten = 127.0.0.1:9000\ncatch_workers_output = yes\n' > "$FPM_D/zzzz-smoke.conf"
+mkdir -p /var/log/php-fpm /run/php-fpm 2>/dev/null
+"$FPM_BIN" -F >"$FPM_LOG" 2>&1 &
 for i in $(seq 1 50); do (echo > /dev/tcp/127.0.0.1/9000) 2>/dev/null && break; sleep 0.2; done
 
 req () { # method script query content-type bodyfile cookie
@@ -49,8 +54,9 @@ echo "shutdown_function_ran=$([ -f /tmp/shutdown_ran ] && echo yes || echo no)"
 sleep 1
 after=$(workers)
 echo "worker_replaced=$([ "$before" = "$after" ] && echo no || echo yes)"
-echo "fpm_log_fatal=$(grep -c 'Allowed memory size' "$FPM_LOG")"
-echo "fpm_log_worker_exit=$(grep -cE 'exited with code|exited on signal' "$FPM_LOG")"
+LOGS="$FPM_LOG $(ls /var/log/php-fpm/*.log 2>/dev/null)"
+echo "fpm_log_fatal=$(cat $LOGS 2>/dev/null | grep -c 'Allowed memory size')"
+echo "fpm_log_worker_exit=$(cat $LOGS 2>/dev/null | grep -cE 'exited with code|exited on signal')"
 
 echo "## still serving after oom"
 for i in 1 2 3 4; do req GET info.php | body | grep -c '^version=' ; done | sort | uniq -c | sed 's/^ */ok_requests=/'
