@@ -30,7 +30,9 @@ runtests () {
 cp -a "$SRC" "$WORK/base"; cp -a "$SRC" "$WORK/fix"
 "$REPO/scripts/apply.sh" "$WORK/fix"
 build "$WORK/base" & build "$WORK/fix" & wait
-runtests "$WORK/base" & runtests "$WORK/fix" & wait
+# run sequentially: timing-sensitive tests (e.g. timeout_*) flake when both suites share the CPU
+runtests "$WORK/base"
+runtests "$WORK/fix"
 
 for d in base fix; do echo "== $d"; grep -E '^Tests (passed|failed)' "$WORK/$d/runtests.out"; done
 echo "== failing only after the patch:"
