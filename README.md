@@ -15,7 +15,7 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 | 7.1 | 7.1.33 | 포팅·검증 완료 ([보고서](reports/7.1.md)) | 7.2 백포트에서 포팅, 종료 처리는 같은 의도로 새로 작성 |
 | 7.0 | 7.0.33 | 포팅·검증 완료 ([보고서](reports/7.0.md)) | 7.1 백포트에서 포팅 |
 
-모든 버전에서 "패치 후에만 실패하는 테스트" 목록이 7.4 공식 백포트와 같습니다(9개, [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)).
+모든 버전에서 "패치 후에만 실패하는 테스트" 목록이 7.4 공식 백포트와 같습니다(9개, [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)). 공식 Docker 이미지 구성 + PHP-FPM 실요청 검증 결과는 [reports/docker.md](reports/docker.md)에 있습니다.
 
 ## 원칙
 
@@ -50,9 +50,22 @@ scripts/apply.sh php-7.3.33
 ```
 patches/<x.y>/NNNN-*.patch   버전별 패치 (git format-patch)
 scripts/apply.sh             소스 트리에 패치 적용
-scripts/compare-tests.sh     패치 전/후 빌드 후 PHP 테스트 결과 비교
-reports/<x.y>.md             버전별 검증 결과
+scripts/compare-tests.sh     패치 전/후 빌드 후 PHP 테스트 결과 비교 (최소 구성)
+docker/Dockerfile            공식 php:<x.y>-fpm 이미지의 PHP를 같은 옵션으로 재빌드(+mysqli, pdo_mysql, gd, opcache)
+docker/verify.sh             버전별 원본/패치본 이미지 빌드 → 테스트 비교 → FPM 스모크 테스트 비교
+docker/smoke/                FPM에 FastCGI 요청: GET/POST 배열, 업로드, 세션, opcache, 메모리 초과 동작
+reports/<x.y>.md             버전별 검증 결과 (최소 구성)
+reports/docker.md            Docker 실환경 검증 결과 (전 버전)
 ```
+
+## Docker로 검증하기
+
+```bash
+docker/verify.sh 7.3          # 한 버전
+docker/verify.sh              # 7.3 7.2 7.1 7.0 전부 (2코어 기준 버전당 약 20분)
+```
+
+Docker 이미지 안의 Debian은 모두 지원이 끝난 배포판이라 archive.debian.org를 씁니다. stretch(7.0)는 아카이브 서명 키가 만료돼 `trusted=yes`로 받습니다. **테스트 전용 설정이니 운영용 Dockerfile에 옮기지 마세요.**
 
 ## 라이선스
 
