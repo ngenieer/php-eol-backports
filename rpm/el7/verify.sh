@@ -2,8 +2,8 @@
 # Verify rebuilt Remi php73 RPMs on CentOS 7.
 #   A) upgrade path: install Remi's current EL7 packages (7.3.33-14) from the remi-php73 repo,
 #      smoke-test, upgrade in place to the patched RPMs with yum, smoke-test again
-#   B) regression: PHP test suites on unpatched (22.base0) vs patched (22.sizlon1) RPMs
-#      built from the same Remi 7.3.33-22 source
+#   B) regression: PHP test suites on RPMs built without (23.base0) and with (23.sizlon1)
+#      the CVE-2026-109618/109619 patches, from the same Remi 7.3.33-23 source
 # Usage: rpm/el7/verify.sh <rpm-dir with base/ and fix/> <php source tree with tests> <out-dir>
 set -u
 RPMS="$(cd "$1" && pwd)"; SRC="$(cd "$2" && pwd)"; OUT="$3"; mkdir -p "$OUT"
@@ -33,9 +33,9 @@ for t in base fix; do
     cp -a /src /tmp/src && cd /tmp/src
     TEST_PHP_EXECUTABLE=/usr/bin/php NO_INTERACTION=1 /usr/bin/php run-tests.php -p /usr/bin/php -q --set-timeout 60 $SUITES > /tmp/rt.out 2>&1
     grep -E '^Tests (passed|failed)' /tmp/rt.out >&2
-    sed -n '/^FAILED TEST SUMMARY/,/^=====/p' /tmp/rt.out | grep -oE '\[[^]]+\.phpt\]' | tr -d '[]' | sort -u
+    sed -n '/^FAILED TEST SUMMARY/,/^=====/p' /tmp/rt.out | grep -oE '\[[^]]+\.phpt\]' | tr -d '[]' | LC_ALL=C sort -u
   " > "$OUT/failed-$t.txt" 2> "$OUT/summary-$t.txt"
   echo "$t: $(tr '\n' ' ' < "$OUT/summary-$t.txt" | tr -s ' ')"
 done
 echo "-- tests failing only after the patch:"
-comm -13 "$OUT/failed-base.txt" "$OUT/failed-fix.txt" | tee "$OUT/regressions.txt"
+LC_ALL=C comm -13 "$OUT/failed-base.txt" "$OUT/failed-fix.txt" | tee "$OUT/regressions.txt"

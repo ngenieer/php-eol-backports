@@ -21,9 +21,9 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
-| CentOS 7 + Remi php73 | 빌드·검증 완료 ([보고서](reports/el7-remi-php73.md)) | Remi 7.3.33-22 소스 + 이 백포트 → `7.3.33-22.sizlon1.el7`. Remi el7(-14)에서 yum 제자리 업그레이드 확인 |
+| CentOS 7 + Remi php73 | 빌드·검증 완료 ([보고서](reports/el7-remi-php73.md)) | Remi 7.3.33-23 소스(수정 포함) + 빠진 핸들러 초기화 보충 → `7.3.33-23.sizlon1.el7`. Remi el7(-14)과 이전 `22.sizlon1`에서 yum 제자리 업그레이드 확인 |
 
-빌드된 RPM은 [Release `el7-php73-7.3.33-22.sizlon1`](../../releases/tag/el7-php73-7.3.33-22.sizlon1)에 있습니다 (SHA256SUMS 포함, GPG 서명 없음). **이 RPM은 7.3 패치를 고치기 전에 빌드했으므로 `sizlon2`로 다시 빌드해야 합니다.**
+이전 릴리스 [`el7-php73-7.3.33-22.sizlon1`](../../releases/tag/el7-php73-7.3.33-22.sizlon1)은 7.3 패치를 고치기 전에 빌드한 것이라 `23.sizlon1`로 대체합니다. 새 RPM은 아직 Release에 올리지 않았습니다.
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
