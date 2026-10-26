@@ -23,12 +23,14 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 |---|---|---|
 | CentOS 7 + Remi php73 | 빌드·검증 완료 ([보고서](reports/el7-remi-php73.md)) | Remi 7.3.33-23 소스(수정 포함) + 빠진 핸들러 초기화 보충 → `7.3.33-23.sizlon1.el7`. Remi el7(-14)과 이전 `22.sizlon1`에서 yum 제자리 업그레이드 확인 |
 
-이전 릴리스 [`el7-php73-7.3.33-22.sizlon1`](../../releases/tag/el7-php73-7.3.33-22.sizlon1)은 7.3 패치를 고치기 전에 빌드한 것이라 `23.sizlon1`로 대체합니다. 새 RPM은 아직 Release에 올리지 않았습니다.
+빌드된 RPM은 [Release `el7-php73-7.3.33-23.sizlon1`](../../releases/tag/el7-php73-7.3.33-23.sizlon1)에 있습니다 (SHA256SUMS 포함, GPG 서명 없음). 이전 릴리스 `22.sizlon1`은 7.3 패치를 고치기 전에 빌드한 것이라 대체했습니다.
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
 | Debian 10 + Sury php7.3 | 빌드·검증 완료 ([보고서](reports/deb-sury-rebuild.md)) | Sury 7.3.33-35 소스(수정 포함)를 buster에서 재빌드 → `…+debian10~1.gbpecf76f+sizlon1` |
 | Ubuntu 18.04 + Sury php7.2 | 빌드·검증 완료 ([보고서](reports/deb-sury-rebuild.md)) | Sury 7.2.34-66 소스(수정 포함)를 bionic에서 재빌드 → `…+ubuntu18.04~1.gbpe0bcd4+sizlon1` |
+
+빌드된 .deb는 Release [`deb-buster-php7.3-7.3.33-35-sizlon1`](../../releases/tag/deb-buster-php7.3-7.3.33-35-sizlon1), [`deb-bionic-php7.2-7.2.34-66-sizlon1`](../../releases/tag/deb-bionic-php7.2-7.2.34-66-sizlon1)에 있습니다 (SHA256SUMS 포함, 서명 없음).
 
 ### Debian·Ubuntu 사용자
 배포판 기본 PHP를 쓴다면 벤더 수정이 이미 있습니다. 이 레포보다 벤더 패키지를 먼저 쓰세요.
