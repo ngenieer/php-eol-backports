@@ -1,0 +1,7 @@
+# Ondřej Surý's Debian sources this directory rebuilds (packages.sury.org, debian12 builds).
+# Sury's pool keeps only the newest build; when these disappear, update the versions and hashes.
+# package  version                                           file                                                        sha256
+php7.3  7.3.33-35+0~20261021.144+debian12~1.gbpecf76f  php7.3_7.3.33-35+0~20261021.144+debian12~1.gbpecf76f.debian.tar.xz  6708d986af131aa0e0c7ecb65a47babacf2918d43a3d94d31341f64a734aa815
+php7.3  7.3.33-35+0~20261021.144+debian12~1.gbpecf76f  php7.3_7.3.33.orig.tar.xz                                          166eaccde933381da9516a2b70ad0f447d7cec4b603d07b9a916032b215b90cc
+php7.2  7.2.34-66+0~20261021.122+debian12~1.gbpe0bcd4  php7.2_7.2.34-66+0~20261021.122+debian12~1.gbpe0bcd4.debian.tar.xz  b74a28979b65941b6f710871cbd5e08c2d31f87aad45c6fe4818202c78072b4b
+php7.2  7.2.34-66+0~20261021.122+debian12~1.gbpe0bcd4  php7.2_7.2.34.orig.tar.xz                                          409e11bc6a2c18707dfc44bc61c820ddfd81e17481470f3405ee7822d8379903

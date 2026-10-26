@@ -17,13 +17,28 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 
 모든 버전에서 "패치 후에만 실패하는 테스트" 목록이 7.4 공식 백포트와 같습니다(9개, [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)). 같은 백포트를 따로 옮긴 Sury 패키지의 패치와도 비교했습니다([보고서](reports/sury-crosscheck.md)). 그 결과로 7.3·7.2 패치를 한 곳 고쳤습니다(2026-10-25). 공식 Docker 이미지 구성 + PHP-FPM 실요청 검증 결과는 [reports/docker.md](reports/docker.md)에 있습니다.
 
-### 패키지(RPM)
+### 패키지(RPM·deb)
 
 | 대상 | 상태 | 비고 |
 |---|---|---|
 | CentOS 7 + Remi php73 | 빌드·검증 완료 ([보고서](reports/el7-remi-php73.md)) | Remi 7.3.33-22 소스 + 이 백포트 → `7.3.33-22.sizlon1.el7`. Remi el7(-14)에서 yum 제자리 업그레이드 확인 |
 
 빌드된 RPM은 [Release `el7-php73-7.3.33-22.sizlon1`](../../releases/tag/el7-php73-7.3.33-22.sizlon1)에 있습니다 (SHA256SUMS 포함, GPG 서명 없음). **이 RPM은 7.3 패치를 고치기 전에 빌드했으므로 `sizlon2`로 다시 빌드해야 합니다.**
+
+| 대상 | 상태 | 비고 |
+|---|---|---|
+| Debian 10 + Sury php7.3 | 빌드·검증 완료 ([보고서](reports/deb-sury-rebuild.md)) | Sury 7.3.33-35 소스(수정 포함)를 buster에서 재빌드 → `…+debian10~1.gbpecf76f+sizlon1` |
+| Ubuntu 18.04 + Sury php7.2 | 빌드·검증 완료 ([보고서](reports/deb-sury-rebuild.md)) | Sury 7.2.34-66 소스(수정 포함)를 bionic에서 재빌드 → `…+ubuntu18.04~1.gbpe0bcd4+sizlon1` |
+
+### Debian·Ubuntu 사용자
+배포판 기본 PHP를 쓴다면 벤더 수정이 이미 있습니다. 이 레포보다 벤더 패키지를 먼저 쓰세요.
+
+| 설치 경로 | 수정 패키지 |
+|---|---|
+| Debian 9 php7.0 / Debian 10 php7.3 | Freexian ELTS 저장소 (`7.0.33-0+deb9u26`, `7.3.31-1~deb10u16`) |
+| Ubuntu 16.04 php7.0 / 18.04 php7.2 | Ubuntu Pro ESM (`+esm22`, `+esm14`) |
+| Sury, Debian 11 이상 / Ubuntu 22.04 이상 | packages.sury.org, `ppa:ondrej/php` (php7.3 -35, 7.2 -66, 7.1 -80, 7.0 -92 이상) |
+| **Sury, Debian 9·10 / Ubuntu 16.04~20.04** | **없음** (Sury가 이 배포판들의 빌드를 중단함) → 위 재빌드 패키지 |
 
 ## 원칙
 
@@ -63,6 +78,7 @@ docker/Dockerfile            공식 php:<x.y>-fpm 이미지의 PHP를 같은 옵
 docker/verify.sh             버전별 원본/패치본 이미지 빌드 → 테스트 비교 → FPM 스모크 테스트 비교
 docker/smoke/                FPM에 FastCGI 요청: GET/POST 배열, 업로드, 세션, opcache, 메모리 초과 동작
 rpm/el7/                     CentOS 7용 RPM 빌드·검증 (Remi SRPM 기반, 버전별 패치와 spec 변경)
+deb/                         Debian 10 / Ubuntu 18.04용 Sury PHP 재빌드·검증 (소스는 deb/sources.txt에 고정)
 reports/<x.y>.md             버전별 검증 결과 (최소 구성)
 reports/docker.md            Docker 실환경 검증 결과 (전 버전)
 ```

@@ -7,13 +7,15 @@ set -u
 W=/smoke/www
 FPM_LOG=/tmp/fpm.log
 
-# Works with the official Docker images (/usr/local) and distro packages (/etc, /usr/sbin).
-FPM_BIN="$(command -v php-fpm || echo /usr/sbin/php-fpm)"
-for d in /usr/local/etc/php-fpm.d /etc/php-fpm.d /etc/opt/remi/*/php-fpm.d; do [ -d "$d" ] && FPM_D="$d" && break; done
+# Works with the official Docker images (/usr/local) and distro packages (/etc, /usr/sbin;
+# Debian/Ubuntu name the binary php-fpm<x.y> and keep pools in /etc/php/<x.y>/fpm/pool.d).
+FPM_BIN="$(command -v php-fpm || ls /usr/sbin/php-fpm[0-9]* 2>/dev/null | head -1 || true)"
+FPM_BIN="${FPM_BIN:-/usr/sbin/php-fpm}"
+for d in /usr/local/etc/php-fpm.d /etc/php-fpm.d /etc/opt/remi/*/php-fpm.d /etc/php/*/fpm/pool.d; do [ -d "$d" ] && FPM_D="$d" && break; done
 # Older FPM (7.0/7.1) binds a bare port to IPv6, which fails in containers without IPv6.
 # Worker stderr (where the patched PHP writes its fatal error) is captured into the FPM log.
 printf '[www]\nlisten = 127.0.0.1:9000\ncatch_workers_output = yes\n' > "$FPM_D/zzzz-smoke.conf"
-mkdir -p /var/log/php-fpm /run/php-fpm 2>/dev/null
+mkdir -p /var/log/php-fpm /run/php-fpm /run/php 2>/dev/null
 "$FPM_BIN" -F >"$FPM_LOG" 2>&1 &
 for i in $(seq 1 50); do (echo > /dev/tcp/127.0.0.1/9000) 2>/dev/null && break; sleep 0.2; done
 
@@ -54,7 +56,7 @@ echo "shutdown_function_ran=$([ -f /tmp/shutdown_ran ] && echo yes || echo no)"
 sleep 1
 after=$(workers)
 echo "worker_replaced=$([ "$before" = "$after" ] && echo no || echo yes)"
-LOGS="$FPM_LOG $(ls /var/log/php-fpm/*.log 2>/dev/null)"
+LOGS="$FPM_LOG $(ls /var/log/php-fpm/*.log /var/log/php*-fpm.log 2>/dev/null)"
 echo "fpm_log_fatal=$(cat $LOGS 2>/dev/null | grep -c 'Allowed memory size')"
 echo "fpm_log_worker_exit=$(cat $LOGS 2>/dev/null | grep -cE 'exited with code|exited on signal')"
 
