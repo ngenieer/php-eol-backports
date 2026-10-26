@@ -15,7 +15,7 @@ Remi의 `php-from-8.2.35-to-7.3.patch`는 이 레포의 7.3 패치와 거의 같
 - 객체 저장소를 해제하기 **전에** 사용자 오류·예외 핸들러를 초기화하는 부분
 - 해제한 뒤 `EG(error_handling)`, `EG(exception)`을 초기화하는 부분
 
-두 가지 모두 php.net 공식 수정(8.x의 802c210, 7.4의 712e60f9ed)과 Remi 자신의 7.4 패치(7.4.33-31)에는 있습니다. 빠지면 클로저로 등록한 핸들러가 해제된 뒤에도 참조가 남습니다([sury-crosscheck.md](sury-crosscheck.md) 참고). 이 두 부분만 `Patch236`으로 더했습니다. 내용은 `patches/7.3`의 해당 부분과 같습니다. Remi 7.2.34-30에도 같은 부분이 빠져 있어 Remi에 알릴 예정입니다. Remi가 반영하면 `Patch236`을 빼고 Remi 소스만으로 빌드하면 됩니다.
+두 가지 모두 php.net 공식 수정(8.x의 802c210, 7.4의 712e60f9ed)과 Remi 자신의 7.4 패치(7.4.33-31)에는 있습니다. 빠지면 클로저로 등록한 핸들러가 해제된 뒤에도 참조가 남습니다([sury-crosscheck.md](sury-crosscheck.md) 참고). 이 두 부분만 `Patch236`으로 더했습니다. 내용은 `patches/7.3`의 해당 부분과 같습니다. Remi 7.2.34-30에도 같은 부분이 빠져 있어 Remi에 알렸습니다([remicollet/remirepo#364](https://github.com/remicollet/remirepo/issues/364)). Remi가 반영하면 `Patch236`을 빼고 Remi 소스만으로 빌드하면 됩니다.
 
 이전 릴리스 `7.3.33-22.sizlon1`은 Remi -22에 이 레포의 전체 패치를 더해 빌드한 것이었고, 핸들러 초기화 위치를 고치기 전의 패치를 썼습니다. 이 릴리스는 `23.sizlon1`로 대체합니다. -22용 전체 패치 파일은 더 이상 쓰지 않아 지웠습니다. git 기록에는 남아 있습니다.
 
