@@ -15,7 +15,7 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 | 7.1 | 7.1.33 | 포팅·검증 완료 ([보고서](reports/7.1.md)) | 7.2 백포트에서 포팅, 종료 처리는 같은 의도로 새로 작성 |
 | 7.0 | 7.0.33 | 포팅·검증 완료 ([보고서](reports/7.0.md)) | 7.1 백포트에서 포팅 |
 
-모든 버전에서 "패치 후에만 실패하는 테스트" 목록이 7.4 공식 백포트와 같습니다(9개, [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)). 공식 Docker 이미지 구성 + PHP-FPM 실요청 검증 결과는 [reports/docker.md](reports/docker.md)에 있습니다.
+모든 버전에서 "패치 후에만 실패하는 테스트" 목록이 7.4 공식 백포트와 같습니다(9개, [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)). 같은 백포트를 따로 옮긴 Sury 패키지의 패치와도 비교했습니다([보고서](reports/sury-crosscheck.md)). 그 결과로 7.3·7.2 패치를 한 곳 고쳤습니다(2026-10-25). 공식 Docker 이미지 구성 + PHP-FPM 실요청 검증 결과는 [reports/docker.md](reports/docker.md)에 있습니다.
 
 ### 패키지(RPM)
 
@@ -23,7 +23,7 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 |---|---|---|
 | CentOS 7 + Remi php73 | 빌드·검증 완료 ([보고서](reports/el7-remi-php73.md)) | Remi 7.3.33-22 소스 + 이 백포트 → `7.3.33-22.sizlon1.el7`. Remi el7(-14)에서 yum 제자리 업그레이드 확인 |
 
-빌드된 RPM은 [Release `el7-php73-7.3.33-22.sizlon1`](../../releases/tag/el7-php73-7.3.33-22.sizlon1)에 있습니다 (SHA256SUMS 포함, GPG 서명 없음).
+빌드된 RPM은 [Release `el7-php73-7.3.33-22.sizlon1`](../../releases/tag/el7-php73-7.3.33-22.sizlon1)에 있습니다 (SHA256SUMS 포함, GPG 서명 없음). **이 RPM은 7.3 패치를 고치기 전에 빌드했으므로 `sizlon2`로 다시 빌드해야 합니다.**
 
 ## 원칙
 

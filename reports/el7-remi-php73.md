@@ -58,6 +58,9 @@ rpmbuild -bb --define "runselftest 0" php73.spec
 rpm/el7/verify.sh <rpm-dir> <php-source-tree> <out-dir>
 ```
 
+## 수정 필요 (2026-10-25)
+배포한 `7.3.33-22.sizlon1`은 핸들러 초기화 위치를 고치기 전의 패치로 빌드했습니다([sury-crosscheck.md](sury-crosscheck.md)). 레포의 `php-cve-2026-109618-109619.patch`는 이미 고쳤으므로, 이 파일로 `22.sizlon2`를 다시 빌드하고 검증 A·B를 다시 돌려야 합니다.
+
 ## 한계
 - Remi가 만든 패키지가 아닙니다. Remi의 서명이 없고, 저장소로 배포하려면 별도 서명 키가 필요합니다.
 - 고객 서버에 PHP 확장을 추가로 설치했다면(pecl 등) 그 확장도 같은 버전으로 다시 맞춰야 할 수 있습니다.
