@@ -23,7 +23,7 @@ Report elsewhere:
 
 Use [private vulnerability reporting](../../security/advisories/new) (Security tab → "Report a vulnerability"). Do not open a public issue for anything that could be exploited.
 
-Include the PHP version, the patch or package version (for example `7.3.33-23.sizlon1.el7`), and how to reproduce the problem. A proof of concept is welcome but not required.
+Include the PHP version, the patch or package version (for example `7.3.33-24.sizlon1.el7`), and how to reproduce the problem. A proof of concept is welcome but not required.
 
 ## What to expect
 

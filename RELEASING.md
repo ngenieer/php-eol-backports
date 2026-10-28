@@ -6,7 +6,7 @@ How rebuilt RPM and .deb packages are published as GitHub releases. The patches 
 
 | Target | Tag | Title |
 |---|---|---|
-| CentOS 7 + Remi | `el7-php73-<version>-<release>.sizlonN` (e.g. `el7-php73-7.3.33-23.sizlon1`) | `CentOS 7 Remi php73 7.3.33-23.sizlon1 (PHP2Shell)` |
+| CentOS 7 + Remi | `el7-php73-<version>-<release>.sizlonN` (e.g. `el7-php73-7.3.33-24.sizlon1`) | `CentOS 7 Remi php73 7.3.33-24.sizlon1 (PHP2Shell)` |
 | Debian / Ubuntu + Sury | `deb-<dist>-php<x.y>-<sury-version>-sizlonN` (e.g. `deb-buster-php7.3-7.3.33-35-sizlon1`) | `Debian 10 Sury php7.3 7.3.33-35 rebuild (PHP2Shell)` |
 
 `sizlonN` is the package's own release suffix. Raise `N` when the same upstream source is rebuilt with a change on our side.
@@ -42,9 +42,9 @@ The notes keep these parts: an **Unofficial** first line, the base source and ve
 
 ```bash
 # el7
-gh release create el7-php73-7.3.33-23.sizlon1 --target main \
-  --title "CentOS 7 Remi php73 7.3.33-23.sizlon1 (PHP2Shell)" --notes-file notes.md \
-  <rpm-dir>/fix/*-7.3.33-23.sizlon1.el7.*.rpm <rpm-dir>/fix/SHA256SUMS
+gh release create el7-php73-7.3.33-24.sizlon1 --target main \
+  --title "CentOS 7 Remi php73 7.3.33-24.sizlon1 (PHP2Shell)" --notes-file notes.md \
+  <rpm-dir>/fix/*-7.3.33-24.sizlon1.el7.*.rpm <rpm-dir>/fix/SHA256SUMS
 
 # deb: only the el7 release is marked Latest
 gh release create deb-buster-php7.3-7.3.33-35-sizlon1 --target main --latest=false \

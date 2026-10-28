@@ -28,7 +28,7 @@ The packages are unsigned and not made by php.net, Remi or Sury. The steps below
 ### CentOS 7 + Remi php73
 
 ```bash
-TAG=el7-php73-7.3.33-23.sizlon1 VR=7.3.33-23.sizlon1
+TAG=el7-php73-7.3.33-24.sizlon1 VR=7.3.33-24.sizlon1
 URL=https://github.com/ngenieer/php-eol-backports/releases/download/$TAG
 mkdir -p ~/php-update && cd ~/php-update
 curl -fsSLO "$URL/SHA256SUMS"
@@ -96,9 +96,9 @@ On every version, the set of tests that fail only after patching is identical to
 
 | Target | Status | Notes |
 |---|---|---|
-| CentOS 7 + Remi php73 | Built and verified ([report](reports/el7-remi-php73.md)) | Remi 7.3.33-23 source (includes the fix) plus the missing handler reset → `7.3.33-23.sizlon1.el7`. In-place `yum` upgrade verified from Remi el7 (-14) and from the earlier `22.sizlon1` |
+| CentOS 7 + Remi php73 | Built and verified ([report](reports/el7-remi-php73.md)) | Remi 7.3.33-24 source (includes the fix), rebuilt unchanged → `7.3.33-24.sizlon1.el7`. In-place `yum` upgrade verified from Remi el7 (-14) and from the earlier `23.sizlon1` |
 
-The RPMs are attached to the release [`el7-php73-7.3.33-23.sizlon1`](../../releases/tag/el7-php73-7.3.33-23.sizlon1) (with SHA256SUMS, no GPG signature). The earlier release `22.sizlon1` was built before the 7.3 patch fix and is superseded.
+The RPMs are attached to the release [`el7-php73-7.3.33-24.sizlon1`](../../releases/tag/el7-php73-7.3.33-24.sizlon1) (with SHA256SUMS, no GPG signature). It supersedes `23.sizlon1`, which runs the same code but added the handler reset Remi -23 was missing as its own patch; `22.sizlon1` was built before the 7.3 patch fix.
 
 | Target | Status | Notes |
 |---|---|---|

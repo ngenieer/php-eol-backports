@@ -27,7 +27,7 @@ The reset now happens **before** the object store is freed, as in the official p
 
 All results are the same as before the fix.
 
-> The el7 RPM already released as `7.3.33-22.sizlon1` was built with the patch before this fix. It is superseded by `23.sizlon1`, based on Remi 7.3.33-23 ([el7 report](el7-remi-php73.md)). Remi's -23 and 7.2.34-30 patches also lack this handler reset.
+> The el7 RPM already released as `7.3.33-22.sizlon1` was built with the patch before this fix. It was superseded by `23.sizlon1`, based on Remi 7.3.33-23 plus this handler reset, and then by `24.sizlon1`, based on Remi 7.3.33-24, which includes the reset ([el7 report](el7-remi-php73.md)). Remi's -23 and 7.2.34-30 patches lacked it; Remi added it after [remicollet/remirepo#364](https://github.com/remicollet/remirepo/issues/364).
 
 ## Differences that are not a problem
 

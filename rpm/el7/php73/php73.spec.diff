@@ -1,40 +1,22 @@
---- remi/srpm23/php73.spec
+--- remi/srpm24/php73.spec
 +++ remi/php73.spec
 @@ -117,7 +117,7 @@
  Summary: PHP scripting language for creating dynamic web sites
  Name: php
  Version: %{upver}%{?rcver:~%{rcver}}
--Release: 23%{?dist}
-+Release: 23.sizlon1%{?dist}
+-Release: 24%{?dist}
++Release: 24.sizlon1%{?dist}
  # All files licensed under PHP version 3.01, except
  # Zend is licensed under Zend
  # TSRM is licensed under BSD
-@@ -229,6 +229,7 @@
- # One cumulative patch per version
- Patch234: php-from-8.2.34-to-7.3.patch
- Patch235: php-from-8.2.35-to-7.3.patch
-+Patch236: php-cve-2026-109618-109619-shutdown.patch
- 
- # Fixes for tests (300+)
- # Factory is droped from system tzdata
-@@ -1246,6 +1247,7 @@
- %patch -P233 -p1 -b .cve7260
- %patch -P234 -p1 -b .from8234
- %patch -P235 -p1 -b .from8235
-+%patch -P236 -p1 -b .php2shell
- 
- # Fixes for tests
- %if 0%{?fedora} >= 25 || 0%{?rhel} >= 6
-@@ -2340,6 +2342,12 @@
+@@ -2340,6 +2340,10 @@
  
  
  %changelog
-+* Mon Oct 26 2026 sizlon <admin@sizlon.io> - 7.3.33-23.sizlon1
-+- Unofficial EL7 rebuild of remi 7.3.33-23
-+- Add the user handler reset on fast shutdown missing from the
-+  CVE-2026-109618/109619 backport, as in the official PHP 7.4 fix
++* Thu Oct 29 2026 sizlon <admin@sizlon.io> - 7.3.33-24.sizlon1
++- Unofficial EL7 rebuild of remi 7.3.33-24, unchanged
 +  from https://github.com/ngenieer/php-eol-backports
 +
- * Sun Oct 25 2026 Remi Collet <remi@remirepo.net> - 7.3.33-23
- - Mitigation fix Avoid state corruption via bailout
-   CVE-2026-109618, CVE-2026-109619
+ * Tue Oct 27 2026 Remi Collet <remi@remirepo.net> - 7.3.33-24
+ - rebuild with proper patch (Avoid state corruption via bailout)
+ 

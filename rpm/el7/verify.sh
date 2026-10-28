@@ -2,8 +2,8 @@
 # Verify rebuilt Remi php73 RPMs on CentOS 7.
 #   A) upgrade path: install Remi's current EL7 packages (7.3.33-14) from the remi-php73 repo,
 #      smoke-test, upgrade in place to the patched RPMs with yum, smoke-test again
-#   B) regression: PHP test suites on RPMs built without (23.base0) and with (23.sizlon1)
-#      the CVE-2026-109618/109619 patches, from the same Remi 7.3.33-23 source
+#   B) regression: PHP test suites on RPMs built without (base0) and with (sizlon1) the
+#      CVE-2026-109618/109619 patch, from the same Remi source (rpm/el7/build.sh)
 # Usage: rpm/el7/verify.sh <rpm-dir with base/ and fix/> <php source tree with tests> <out-dir>
 set -u
 RPMS="$(cd "$1" && pwd)"; SRC="$(cd "$2" && pwd)"; OUT="$3"; mkdir -p "$OUT"
