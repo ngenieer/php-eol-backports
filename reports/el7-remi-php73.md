@@ -60,6 +60,7 @@ docker build -f rpm/el7/Dockerfile.builder -t peb-el7-builder .   # put a proxy 
 # (before building) yum install gd3php-devel libicu69-devel oniguruma5php-devel; yum-builddep php73.spec
 rpmbuild -bb --define "runselftest 0" php73.spec
 rpm/el7/verify.sh <rpm-dir> <php-source-tree> <out-dir>
+rpm/el7/sha256sums.sh <rpm-dir>/fix 7.3.33-23.sizlon1   # SHA256SUMS for the release
 ```
 
 ## Limitations
