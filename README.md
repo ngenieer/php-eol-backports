@@ -96,4 +96,6 @@ Docker 이미지 안의 Debian은 모두 지원이 끝난 배포판이라 archiv
 
 ## 라이선스
 
-패치는 PHP 소스에서 파생되었으므로 PHP License 3.01을 따릅니다.
+이 레포의 모든 파일(패치, 스크립트, 문서)은 [PHP License 3.01](LICENSE)을 따릅니다. 패치가 PHP 소스에서 파생되었기 때문입니다.
+
+PHP License 4조에 따라, 이 레포에서 빌드한 패키지는 PHP Group이 만들거나 보증한 것이 아닙니다.
