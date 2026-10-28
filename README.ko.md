@@ -88,6 +88,7 @@ deb/                         Debian 10 / Ubuntu 18.04용 Sury PHP 재빌드·검
 reports/<x.y>.md             버전별 검증 결과 (최소 구성)
 reports/docker.md            Docker 실환경 검증 결과 (전 버전)
 checksums/<tag>.sha256       릴리스별 패키지 SHA256 (릴리스의 SHA256SUMS와 같음)
+RELEASING.md                 패키지 빌드·확인·릴리스 게시 절차 (영어)
 ```
 
 ## Docker로 검증하기

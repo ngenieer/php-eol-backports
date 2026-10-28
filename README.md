@@ -87,6 +87,7 @@ deb/                         Debian 10 / Ubuntu 18.04 rebuilds of Sury PHP and v
 reports/<x.y>.md             per-version verification results (minimal build)
 reports/docker.md            Docker verification results (all versions)
 checksums/<tag>.sha256       SHA256 of each release's packages, matching the release's SHA256SUMS
+RELEASING.md                 how packages are built, checked and published as releases
 ```
 
 ## Verifying with Docker
