@@ -19,15 +19,16 @@ deb/build.sh buster 7.3 out/buster-7.3     # writes out/buster-7.3/fix/*.deb and
 deb/verify.sh buster 7.3 out/buster-7.3
 ```
 
-el7 (built by hand, see [reports/el7-remi-php73.md](reports/el7-remi-php73.md#how-to-reproduce)):
+el7:
 ```bash
-rpm/el7/verify.sh <rpm-dir> <php-source-tree> <out-dir>
-rpm/el7/sha256sums.sh <rpm-dir>/fix 7.3.33-23.sizlon1   # writes <rpm-dir>/fix/SHA256SUMS
+rpm/el7/build.sh out/el7                     # writes out/el7/{fix,base}/*.rpm, fix/SHA256SUMS and src/
+rpm/el7/verify.sh out/el7 out/el7/src out/el7/results
 ```
+For a new Remi release, update `SRPM`, `SUM` and `VR` in `rpm/el7/build.sh` (check the SRPM's signature with Remi's key on an EL8/EL9 system first) and the `Release:` line and changelog in `php73.spec.diff`.
 
 Update the matching report in `reports/` with the results before publishing. Do not release a build whose regression list differs from the 9 tests in [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md) without explaining why in the report.
 
-SHA256SUMS lists asset names with `~` replaced by `.`, because GitHub renames uploaded files that way. Both scripts do this; a hand-written SHA256SUMS must too.
+SHA256SUMS lists asset names with `~` replaced by `.`, because GitHub renames uploaded files that way. `deb/build.sh` and `rpm/el7/build.sh` (through `rpm/el7/sha256sums.sh`) do this; a hand-written SHA256SUMS must too.
 
 ## 2. Publish
 
@@ -37,7 +38,7 @@ Write the notes in English. Start from the notes of the previous release for the
 gh release view <previous-tag> --json body --jq .body > notes.md
 ```
 
-The notes keep these parts: an **Unofficial** first line, the base source and version, links to the report and EXPECTED-CHANGES.md, an install example that runs `sha256sum -c SHA256SUMS --ignore-missing`, and the note that the packages are unsigned and not endorsed by php.net, Remi or Sury.
+The notes keep these parts: an **Unofficial** first line, the base source and version, links to the report and EXPECTED-CHANGES.md, the install commands from the README's "Installing the packages" section (with the new tag; CentOS 7's `sha256sum` has no `--ignore-missing`), and the note that the packages are unsigned and not endorsed by php.net, Remi or Sury.
 
 ```bash
 # el7
@@ -64,7 +65,7 @@ mkdir /tmp/check && gh release download <tag> -D /tmp/check
 cp <dir>/fix/SHA256SUMS checksums/<tag>.sha256
 ```
 
-Update the release links and version strings in both `README.md` and `README.ko.md`, then commit the checksums, the READMEs and the report together.
+Update the release links, version strings and the `TAG=` lines of the install commands in both `README.md` and `README.ko.md`, then commit the checksums, the READMEs and the report together.
 
 ## Superseding a release
 

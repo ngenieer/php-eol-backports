@@ -54,14 +54,10 @@ Session upload progress (`session.upload_progress`) is disabled in the code. The
 
 ## How to reproduce
 ```bash
-docker build -f rpm/el7/Dockerfile.builder -t peb-el7-builder .   # put a proxy CA in rpm/el7/ca/ if needed
-# Remi's SRPM php-7.3.33-23.remi.src.rpm uses an EL8 rpm feature (RichDependencies), so rpm -i fails on el7.
-# Unpack it with rpm2cpio into SOURCES/SPECS, apply php73.spec.diff, copy the Patch236 file into SOURCES, then
-# (before building) yum install gd3php-devel libicu69-devel oniguruma5php-devel; yum-builddep php73.spec
-rpmbuild -bb --define "runselftest 0" php73.spec
-rpm/el7/verify.sh <rpm-dir> <php-source-tree> <out-dir>
-rpm/el7/sha256sums.sh <rpm-dir>/fix 7.3.33-23.sizlon1   # SHA256SUMS for the release
+rpm/el7/build.sh <out>    # Remi SRPM (hash pinned) → <out>/{fix,base}/*.rpm, <out>/fix/SHA256SUMS, <out>/src
+rpm/el7/verify.sh <out> <out>/src <results-dir>
 ```
+`build.sh` unpacks Remi's SRPM with rpm2cpio (it uses an EL8 rpm feature, RichDependencies, so `rpm -i` fails on el7), applies `php73.spec.diff` and `Patch236`, installs the build dependencies, and builds the `fix` spec and a `base` spec without Patch235/236 (`23.base0`). Put a proxy CA in `rpm/el7/ca/` if needed.
 
 ## Limitations
 - These are not packages made by Remi. They do not carry Remi's signature; distributing them through a repository requires a separate signing key.
