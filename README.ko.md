@@ -34,6 +34,8 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 
 빌드된 .deb는 Release [`deb-buster-php7.3-7.3.33-35-sizlon1`](../../releases/tag/deb-buster-php7.3-7.3.33-35-sizlon1), [`deb-bionic-php7.2-7.2.34-66-sizlon1`](../../releases/tag/deb-bionic-php7.2-7.2.34-66-sizlon1)에 있습니다 (SHA256SUMS 포함, 서명 없음).
 
+같은 체크섬을 [`checksums/`](checksums)에도 커밋해 두었으므로, 릴리스 파일을 git 기록과도 대조할 수 있습니다. 내려받은 디렉터리에서 `sha256sum -c <저장소 경로>/checksums/<tag>.sha256 --ignore-missing`을 실행하세요.
+
 ### Debian·Ubuntu 사용자
 배포판 기본 PHP를 쓴다면 벤더 수정이 이미 있습니다. 이 레포보다 벤더 패키지를 먼저 쓰세요.
 
@@ -85,6 +87,7 @@ rpm/el7/                     CentOS 7용 RPM 빌드·검증 (Remi SRPM 기반, �
 deb/                         Debian 10 / Ubuntu 18.04용 Sury PHP 재빌드·검증 (소스는 deb/sources.txt에 고정)
 reports/<x.y>.md             버전별 검증 결과 (최소 구성)
 reports/docker.md            Docker 실환경 검증 결과 (전 버전)
+checksums/<tag>.sha256       릴리스별 패키지 SHA256 (릴리스의 SHA256SUMS와 같음)
 ```
 
 ## Docker로 검증하기

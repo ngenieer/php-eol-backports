@@ -33,6 +33,8 @@ The RPMs are attached to the release [`el7-php73-7.3.33-23.sizlon1`](../../relea
 
 The .deb packages are attached to the releases [`deb-buster-php7.3-7.3.33-35-sizlon1`](../../releases/tag/deb-buster-php7.3-7.3.33-35-sizlon1) and [`deb-bionic-php7.2-7.2.34-66-sizlon1`](../../releases/tag/deb-bionic-php7.2-7.2.34-66-sizlon1) (with SHA256SUMS, unsigned).
 
+The same checksums are committed in [`checksums/`](checksums), so a release asset can be checked against the git history as well; in the download directory, run `sha256sum -c <path-to-repo>/checksums/<tag>.sha256 --ignore-missing`.
+
 ### Debian and Ubuntu users
 If you use your distribution's own PHP, a vendor fix already exists. Prefer the vendor package over anything in this repository.
 
@@ -84,6 +86,7 @@ rpm/el7/                     CentOS 7 RPM build and verification (based on Remi 
 deb/                         Debian 10 / Ubuntu 18.04 rebuilds of Sury PHP and verification (sources pinned in deb/sources.txt)
 reports/<x.y>.md             per-version verification results (minimal build)
 reports/docker.md            Docker verification results (all versions)
+checksums/<tag>.sha256       SHA256 of each release's packages, matching the release's SHA256SUMS
 ```
 
 ## Verifying with Docker
