@@ -1,42 +1,42 @@
-# Sury 패키지 패치와의 교차 검증 (2026-10-25)
+# Cross-check against Sury's package patches (2026-10-25)
 
-Ondřej Surý(packages.sury.org, Launchpad `ondrej/php`)도 같은 7.4 공식 백포트(712e60f9ed)를 PHP 7.0~7.3으로 옮겨 배포하고 있습니다.
+Ondřej Surý (packages.sury.org, Launchpad `ondrej/php`) has also ported the same official 7.4 backport (712e60f9ed) to PHP 7.0–7.3 and ships it:
 - php7.3 `7.3.33-35`: `0139-Avoid-state-corruption-via-bailout.patch`
 - php7.2 `7.2.34-66`: `0159-...`
 - php7.1 `7.1.33-81`: `0186-...`
 - php7.0 `7.0.33-92`: `0230-...`
 
-두 사람이 따로 옮긴 결과를 비교해 서로 다른 곳을 모두 확인했습니다. 방법은 이렇습니다. 두 패치에서 추가·삭제된 줄만 파일별로 뽑고 공백을 정규화해 diff 했습니다. 자동 생성 파일 `zend_vm_execute.h`는 비교에서 뺐습니다.
+The two independent ports were compared and every difference was reviewed. Method: for each file, the added and removed lines of both patches were extracted, whitespace was normalised, and the results were diffed. The generated file `zend_vm_execute.h` was excluded from the comparison.
 
-## 발견 후 수정한 것: 7.3·7.2의 핸들러 초기화 위치
+## Found and fixed: position of the handler reset in 7.3 and 7.2
 
-| | 위치 |
+| | Position |
 |---|---|
-| 7.4 공식 | `zend_objects_store_free_object_storage()` **전**(빠른 종료 분기) |
-| Sury 7.3·7.2 | `zend_objects_store_free_object_storage()` **전**, `if (fast_shutdown)` |
-| 이 레포 7.3·7.2 (수정 전) | 객체 저장소 해제와 확장 비활성화가 끝난 **뒤**, 빠른 종료 분기 |
+| Official 7.4 | **Before** `zend_objects_store_free_object_storage()` (fast-shutdown branch) |
+| Sury 7.3 and 7.2 | **Before** `zend_objects_store_free_object_storage()`, under `if (fast_shutdown)` |
+| This repository, 7.3 and 7.2 (before the fix) | **After** the object store was freed and extensions were deactivated, in the fast-shutdown branch |
 
-7.3·7.2의 빠른 종료는 객체 저장소를 해제할 때 기본 해제 함수가 아닌 객체의 `free_obj`를 호출합니다. 클로저가 여기에 해당합니다. 클로저로 등록한 사용자 오류 핸들러는 이 시점에 해제되지만, 수정 전 패치에서는 `EG(user_error_handler)`가 그 클로저를 계속 가리켰습니다. 그 사이에 경고가 나면 해제된 클로저가 호출될 수 있습니다. 이 구간에서 bailout이 나면 초기화가 아예 건너뛰어져 다음 요청까지 이어질 수 있었습니다. 패치가 막으려는 바로 그 상태 오염입니다.
+On fast shutdown in 7.3 and 7.2, freeing the object store calls each object's `free_obj` rather than the default free routine; closures are such objects. A user error handler registered as a closure is freed at this point, but with the earlier patch `EG(user_error_handler)` still pointed at that closure. A warning raised in that window could call the freed closure. A bailout in that window skipped the reset entirely, so the state could carry over to the next request — exactly the state corruption the patch is meant to prevent.
 
-공식 패치와 Sury 패치처럼 객체 저장소 해제 **전**에 초기화하도록 바꿨습니다(`patches/7.3`, `patches/7.2`, el7 RPM용 패치. 이 파일은 2026-10-26 Remi 7.3.33-23 기반으로 바꾸면서 지웠습니다). 수정한 뒤 다시 검증했습니다.
+The reset now happens **before** the object store is freed, as in the official patch and Sury's patches (`patches/7.3`, `patches/7.2`, and the patch for the el7 RPM; that file was removed on 2026-10-26 when the RPM moved to Remi 7.3.33-23). Verification was repeated after the fix.
 
-| 버전 | 최소 구성(`compare-tests.sh`) 패치 후에만 실패 | Docker(공식 이미지 구성) 패치 후에만 실패 | FPM 스모크 차이 |
+| Version | Minimal build (`compare-tests.sh`), failing only after the patch | Docker (official image setup), failing only after the patch | FPM smoke differences |
 |---|---|---|---|
-| 7.3 | 9개, 7.4 공식과 같음 (업로드 진행 8 + `bug45392`) | `tests/lang/bug45392.phpt` | 메모리 초과 동작만 |
-| 7.2 | 9개, 7.4 공식과 같음 (업로드 진행 8 + `bug45392`) | `tests/lang/bug45392.phpt` | 메모리 초과 동작만 |
+| 7.3 | 9, same as official 7.4 (upload progress 8 + `bug45392`) | `tests/lang/bug45392.phpt` | Memory-limit behaviour only |
+| 7.2 | 9, same as official 7.4 (upload progress 8 + `bug45392`) | `tests/lang/bug45392.phpt` | Memory-limit behaviour only |
 
-모두 수정 전과 같은 결과입니다.
+All results are the same as before the fix.
 
-> 이미 배포한 el7 RPM `7.3.33-22.sizlon1`은 수정 전 패치로 빌드했습니다. Remi 7.3.33-23 기반 `23.sizlon1`로 대체했습니다([el7 보고서](el7-remi-php73.md)). Remi -23과 7.2.34-30의 패치에도 이 핸들러 초기화가 빠져 있습니다.
+> The el7 RPM already released as `7.3.33-22.sizlon1` was built with the patch before this fix. It is superseded by `23.sizlon1`, based on Remi 7.3.33-23 ([el7 report](el7-remi-php73.md)). Remi's -23 and 7.2.34-30 patches also lack this handler reset.
 
-## 차이가 있지만 문제없는 것
+## Differences that are not a problem
 
-| 항목 | 이 레포 | Sury | 판단 |
+| Item | This repository | Sury | Assessment |
 |---|---|---|---|
-| 7.0·7.1 핸들러 초기화 | 모든 정리 블록 뒤에서 핸들러, 핸들러 스택 3개, objects_store까지 초기화 | 핸들러 2개만 초기화 | 7.0·7.1에는 빠른 종료 분기가 없어 둘 다 정리 블록 뒤가 맞음. 이 레포 쪽이 더 넓게 초기화 |
-| `array_init_singleton` (7.0~7.2) | `zend_hash.c`에 `zend_new_array_singleton()` 추가 (7.4와 같은 이름) | `zend_API.c`에 `_array_init_singleton()` 추가 | 둘 다 `nTableSize = 1`인 빈 배열. 같은 의미 |
-| `ZSTR_MAX_LEN` | `zend_string.h`에 추가 | 이미 이전 Sury 패치에 있음 | 기준 트리 차이 |
-| `max_multipart_body_parts` | 패치에 포함 | 별도 CVE-2023-0662 패치로 들어감 | 기준 트리 차이 (Remi와 같은 상황, el7 보고서 참고) |
-| 7.0·7.1 `zend_mm_alloc_huge` 크기 오버플로 검사, `ZEND_FAST_CONCAT` 길이 검사 | 추가 | 없음 | 7.0·7.1에는 이 검사가 원래 없음. 이 레포 쪽이 더 엄격하고, 오버플로가 아닐 때는 동작이 같음 |
-| multipart 헤더 `isspace` 인자 | `(unsigned char)` 캐스트 (7.4 공식과 같음) | 캐스트 없음 | 이 레포가 공식과 같음 |
-| 업로드 진행 비활성화 (7.3) | `\|\| true` | `\|\| 1` | 같은 의미 (7.0~7.2는 둘 다 `\|\| 1`) |
+| Handler reset in 7.0 and 7.1 | After all cleanup blocks: handlers, the 3 handler stacks, and objects_store | Only the 2 handlers | 7.0 and 7.1 have no fast-shutdown branch, so after the cleanup blocks is correct for both. This repository resets more |
+| `array_init_singleton` (7.0–7.2) | Adds `zend_new_array_singleton()` to `zend_hash.c` (same name as in 7.4) | Adds `_array_init_singleton()` to `zend_API.c` | Both create an empty array with `nTableSize = 1`. Same meaning |
+| `ZSTR_MAX_LEN` | Added to `zend_string.h` | Already present from an earlier Sury patch | Different base tree |
+| `max_multipart_body_parts` | Included in the patch | Added by a separate CVE-2023-0662 patch | Different base tree (same situation as Remi, see the el7 report) |
+| 7.0 and 7.1: `zend_mm_alloc_huge` size overflow check, `ZEND_FAST_CONCAT` length check | Added | Absent | 7.0 and 7.1 never had these checks. This repository is stricter; behaviour is identical when there is no overflow |
+| `isspace` argument for multipart headers | `(unsigned char)` cast (same as official 7.4) | No cast | This repository matches the official patch |
+| Disabling upload progress (7.3) | `\|\| true` | `\|\| 1` | Same meaning (7.0–7.2 both use `\|\| 1`) |
