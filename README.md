@@ -6,6 +6,80 @@
 
 > Not produced, reviewed or endorsed by the PHP project. Use at your own risk.
 
+## Which fix applies to you
+
+Find out what you run: `php -v`, then `rpm -qa 'php*'` (CentOS) or `apt-cache policy php7.3-common` (Debian/Ubuntu, with your PHP version) to see where the packages came from.
+
+| Your system | What to do |
+|---|---|
+| PHP 7.4, 8.0, 8.1 | Official source backports exist (php-src branches `PHP-x.y-CVE-2026-109618-109619`), or use your vendor's package. Not covered here |
+| Debian or Ubuntu, the distribution's own PHP | Use the vendor fix, see [Debian and Ubuntu users](#debian-and-ubuntu-users) |
+| CentOS 7, Remi `remi-php73` repository (packages named `php-cli`, `php-fpm`, …, version `7.3.33-*.el7.remi`) | Install the RPMs, see [Installing the packages](#installing-the-packages) |
+| Debian 10, Sury php7.3 | Install the .debs, see [Installing the packages](#installing-the-packages) |
+| Ubuntu 18.04, Sury php7.2 | Install the .debs, see [Installing the packages](#installing-the-packages) |
+| Anything else on PHP 7.0–7.3: CentOS 7 with Remi php70–php72 or Remi's `php73-php-*` collection, Sury on Debian 9 / Ubuntu 16.04 / 20.04 or other PHP versions, PHP built from source, official `php:7.x` Docker images | No package here. Patch the source, see [Building from source](#building-from-source) |
+
+Whatever you choose, read [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md) first and try it on a staging server: requests that exceed the memory limit now end with a 502 from nginx, and session upload progress stops working.
+
+## Installing the packages
+
+The packages are unsigned and not made by php.net, Remi or Sury. The steps below download only the packages you already have installed, check them against the release's SHA256SUMS, and upgrade them in place.
+
+### CentOS 7 + Remi php73
+
+```bash
+TAG=el7-php73-7.3.33-23.sizlon1 VR=7.3.33-23.sizlon1
+URL=https://github.com/ngenieer/php-eol-backports/releases/download/$TAG
+mkdir -p ~/php-update && cd ~/php-update
+curl -fsSLO "$URL/SHA256SUMS"
+for p in $(rpm -qa 'php*' --qf '%{NAME}\n'); do
+  f="$p-$VR.el7.x86_64.rpm"
+  if awk -v f="$f" '$2 == f' SHA256SUMS | grep -q .; then
+    curl -fsSLO "$URL/$f"; awk -v f="$f" '$2 == f' SHA256SUMS >> SHA256SUMS.mine
+  else echo "not in this release: $p"; fi
+done
+sha256sum -c SHA256SUMS.mine          # every line must say OK
+sudo yum localinstall ./*.rpm
+sudo systemctl restart php-fpm        # and/or httpd when PHP runs as mod_php
+```
+
+Check: `rpm -q --changelog php-common | head -3` shows the `sizlon1` entry, and `rpm -qa 'php*' | grep -v sizlon1` lists only packages this release does not replace, such as `php-pecl-*` extensions. Run `php -v` and check that no extension fails to load; one that does must be rebuilt for the new package.
+
+Roll back: `sudo yum --enablerepo=remi-php73 history undo last` returns to Remi's 7.3.33-14, which is still in the `remi-php73` repository.
+
+### Debian 10 + Sury php7.3, Ubuntu 18.04 + Sury php7.2
+
+On Ubuntu 18.04 use `TAG=deb-bionic-php7.2-7.2.34-66-sizlon1 X=7.2`. These packages need Sury's `php-common` (1:81 or later); servers that used the Sury PPA already have it.
+
+```bash
+TAG=deb-buster-php7.3-7.3.33-35-sizlon1 X=7.3
+URL=https://github.com/ngenieer/php-eol-backports/releases/download/$TAG
+mkdir -p ~/php-update && cd ~/php-update
+dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Version}\n' "php$X*" "libapache2-mod-php$X" "libphp$X-embed" 2>/dev/null \
+  | awk '$1 == "ii" {print $2, $3}' > versions-before.txt
+curl -fsSLO "$URL/SHA256SUMS"
+for p in $(awk '{print $1}' versions-before.txt); do
+  if awk -v p="${p}_" 'index($2, p) == 1' SHA256SUMS | grep -q .; then
+    awk -v p="${p}_" 'index($2, p) == 1' SHA256SUMS | tee -a SHA256SUMS.mine | while read -r h f; do curl -fsSLO "$URL/$f"; done
+  else echo "not in this release: $p"; fi
+done
+sha256sum -c SHA256SUMS.mine          # every line must say OK
+sudo apt install ./*.deb
+sudo systemctl restart php$X-fpm      # and/or apache2 when PHP runs as mod_php
+```
+
+Check: `dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Version}\n' "php$X*" | awk '$1 == "ii" && $3 !~ /sizlon1/'` prints nothing, and `zcat /usr/share/doc/php$X-common/changelog.Debian.gz | head -4` shows the `sizlon1` entry.
+
+Roll back: `sudo apt install --allow-downgrades $(awk '{print $1"="$2}' versions-before.txt)`. This only works if the old versions can still be downloaded; Sury no longer serves these releases, so keep copies of the old .deb files (`/var/cache/apt/archives`) before upgrading if you may need to go back.
+
+### Cross-check the checksums (optional)
+
+Each release's SHA256SUMS is also committed to this repository, so a changed release asset would not match the git history:
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/ngenieer/php-eol-backports/main/checksums/$TAG.sha256" | diff - SHA256SUMS && echo same
+```
+
 ## Status
 
 | Branch | Base version | Status | Derived from |
@@ -33,8 +107,6 @@ The RPMs are attached to the release [`el7-php73-7.3.33-23.sizlon1`](../../relea
 
 The .deb packages are attached to the releases [`deb-buster-php7.3-7.3.33-35-sizlon1`](../../releases/tag/deb-buster-php7.3-7.3.33-35-sizlon1) and [`deb-bionic-php7.2-7.2.34-66-sizlon1`](../../releases/tag/deb-bionic-php7.2-7.2.34-66-sizlon1) (with SHA256SUMS, unsigned).
 
-The same checksums are committed in [`checksums/`](checksums), so a release asset can be checked against the git history as well; in the download directory, run `sha256sum -c <path-to-repo>/checksums/<tag>.sha256 --ignore-missing`.
-
 ### Debian and Ubuntu users
 If you use your distribution's own PHP, a vendor fix already exists. Prefer the vendor package over anything in this repository.
 
@@ -43,7 +115,7 @@ If you use your distribution's own PHP, a vendor fix already exists. Prefer the 
 | Debian 9 php7.0 / Debian 10 php7.3 | Freexian ELTS repository (`7.0.33-0+deb9u26`, `7.3.31-1~deb10u16`) |
 | Ubuntu 16.04 php7.0 / 18.04 php7.2 | Ubuntu Pro ESM (`+esm22`, `+esm14`) |
 | Sury, Debian 11+ / Ubuntu 22.04+ | packages.sury.org, `ppa:ondrej/php` (php7.3 -35, 7.2 -66, 7.1 -80, 7.0 -92 or later) |
-| **Sury, Debian 9/10 / Ubuntu 16.04–20.04** | **None** (Sury no longer builds for these releases) → the rebuilt packages above |
+| **Sury, Debian 9/10 / Ubuntu 16.04–20.04** | **None** (Sury no longer builds for these releases). Rebuilt packages exist here only for Debian 10 php7.3 and Ubuntu 18.04 php7.2; for anything else, see [Building from source](#building-from-source) |
 
 ## Principles
 
@@ -54,15 +126,21 @@ If you use your distribution's own PHP, a vendor fix already exists. Prefer the 
 
 **Read [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md) before applying.** As with the official fix, session upload progress is disabled and the process exits immediately when the memory limit is exceeded.
 
-## Usage
+## Building from source
+
+The patches are made for the last release of each branch: 7.3.33, 7.2.34, 7.1.33 and 7.0.33. On an older release of the same branch they may not apply; move to the last release first.
 
 ```bash
-# 1. Get the source of the exact PHP version you run
+# 1. Note the configure options of the PHP you run now
+php -i | grep 'Configure Command'
+# 2. Get the source of the last release of your branch (https://www.php.net/releases/) and apply the patch
 tar xf php-7.3.33.tar.gz
-# 2. Apply the patch
-scripts/apply.sh php-7.3.33
-# 3. Rebuild with your existing configure options, install, and restart every PHP worker
+git clone https://github.com/ngenieer/php-eol-backports
+php-eol-backports/scripts/apply.sh php-7.3.33
+# 3. Configure with the same options, then make && make install, and restart every PHP worker (php-fpm, Apache)
 ```
+
+For the official `php:7.x-fpm` Docker images, [docker/Dockerfile](docker/Dockerfile) shows how to rebuild the image's own PHP with its original configure options and the patch applied. It is a test image: leave out its archive.debian.org `trusted=yes` setting in production.
 
 If PHP was installed from distribution packages (apt/yum), check your distribution's or LTS vendor's security notices first.
 

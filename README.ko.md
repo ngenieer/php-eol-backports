@@ -7,6 +7,80 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 > Unofficial backports of the PHP2Shell fix (CVE-2026-109618 / CVE-2026-109619) to end-of-life PHP 7.0–7.3.
 > Not produced, reviewed or endorsed by the PHP project. Use at your own risk.
 
+## 내 서버에 맞는 방법
+
+먼저 무엇을 쓰고 있는지 확인하세요: `php -v`, 그리고 `rpm -qa 'php*'`(CentOS) 또는 `apt-cache policy php7.3-common`(Debian/Ubuntu, PHP 버전에 맞게)으로 패키지 출처를 봅니다.
+
+| 내 서버 | 할 일 |
+|---|---|
+| PHP 7.4, 8.0, 8.1 | 공식 소스 백포트가 있습니다 (php-src 브랜치 `PHP-x.y-CVE-2026-109618-109619`). 또는 벤더 패키지를 쓰세요. 이 레포 대상 아님 |
+| Debian·Ubuntu 배포판 기본 PHP | 벤더 수정을 쓰세요. [Debian·Ubuntu 사용자](#debianubuntu-사용자) 참고 |
+| CentOS 7, Remi `remi-php73` 저장소 (패키지 이름 `php-cli`, `php-fpm` …, 버전 `7.3.33-*.el7.remi`) | RPM 설치, [패키지 설치](#패키지-설치) 참고 |
+| Debian 10, Sury php7.3 | .deb 설치, [패키지 설치](#패키지-설치) 참고 |
+| Ubuntu 18.04, Sury php7.2 | .deb 설치, [패키지 설치](#패키지-설치) 참고 |
+| 그 밖의 PHP 7.0~7.3: CentOS 7의 Remi php70~php72나 Remi `php73-php-*` 컬렉션, Debian 9 / Ubuntu 16.04 / 20.04의 Sury 또는 다른 PHP 버전, 소스로 직접 빌드한 PHP, 공식 `php:7.x` Docker 이미지 | 여기에는 패키지가 없습니다. 소스에 패치하세요. [소스로 빌드](#소스로-빌드) 참고 |
+
+어느 방법이든 먼저 [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)를 읽고 스테이징 서버에서 확인하세요. 메모리 한도를 넘는 요청은 nginx에서 502로 끝나고, 세션 업로드 진행 기능은 동작하지 않게 됩니다.
+
+## 패키지 설치
+
+패키지는 서명이 없고 php.net·Remi·Sury가 만든 것이 아닙니다. 아래 명령은 서버에 이미 설치된 패키지만 내려받아 릴리스의 SHA256SUMS로 확인한 뒤 제자리 업그레이드합니다.
+
+### CentOS 7 + Remi php73
+
+```bash
+TAG=el7-php73-7.3.33-23.sizlon1 VR=7.3.33-23.sizlon1
+URL=https://github.com/ngenieer/php-eol-backports/releases/download/$TAG
+mkdir -p ~/php-update && cd ~/php-update
+curl -fsSLO "$URL/SHA256SUMS"
+for p in $(rpm -qa 'php*' --qf '%{NAME}\n'); do
+  f="$p-$VR.el7.x86_64.rpm"
+  if awk -v f="$f" '$2 == f' SHA256SUMS | grep -q .; then
+    curl -fsSLO "$URL/$f"; awk -v f="$f" '$2 == f' SHA256SUMS >> SHA256SUMS.mine
+  else echo "not in this release: $p"; fi
+done
+sha256sum -c SHA256SUMS.mine          # every line must say OK
+sudo yum localinstall ./*.rpm
+sudo systemctl restart php-fpm        # and/or httpd when PHP runs as mod_php
+```
+
+확인: `rpm -q --changelog php-common | head -3`에 `sizlon1` 항목이 보여야 하고, `rpm -qa 'php*' | grep -v sizlon1`에는 이 릴리스가 바꾸지 않는 패키지(예: `php-pecl-*` 확장)만 나와야 합니다. `php -v`로 확장이 모두 로드되는지 보세요. 로드되지 않는 확장은 새 패키지에 맞게 다시 빌드해야 합니다.
+
+되돌리기: `sudo yum --enablerepo=remi-php73 history undo last`로 Remi 7.3.33-14로 돌아갑니다. -14는 아직 `remi-php73` 저장소에 있습니다.
+
+### Debian 10 + Sury php7.3, Ubuntu 18.04 + Sury php7.2
+
+Ubuntu 18.04에서는 `TAG=deb-bionic-php7.2-7.2.34-66-sizlon1 X=7.2`를 쓰세요. 이 패키지는 Sury의 `php-common`(1:81 이상)이 필요합니다. Sury PPA를 쓰던 서버에는 이미 있습니다.
+
+```bash
+TAG=deb-buster-php7.3-7.3.33-35-sizlon1 X=7.3
+URL=https://github.com/ngenieer/php-eol-backports/releases/download/$TAG
+mkdir -p ~/php-update && cd ~/php-update
+dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Version}\n' "php$X*" "libapache2-mod-php$X" "libphp$X-embed" 2>/dev/null \
+  | awk '$1 == "ii" {print $2, $3}' > versions-before.txt
+curl -fsSLO "$URL/SHA256SUMS"
+for p in $(awk '{print $1}' versions-before.txt); do
+  if awk -v p="${p}_" 'index($2, p) == 1' SHA256SUMS | grep -q .; then
+    awk -v p="${p}_" 'index($2, p) == 1' SHA256SUMS | tee -a SHA256SUMS.mine | while read -r h f; do curl -fsSLO "$URL/$f"; done
+  else echo "not in this release: $p"; fi
+done
+sha256sum -c SHA256SUMS.mine          # every line must say OK
+sudo apt install ./*.deb
+sudo systemctl restart php$X-fpm      # and/or apache2 when PHP runs as mod_php
+```
+
+확인: `dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Version}\n' "php$X*" | awk '$1 == "ii" && $3 !~ /sizlon1/'`가 아무것도 출력하지 않고, `zcat /usr/share/doc/php$X-common/changelog.Debian.gz | head -4`에 `sizlon1` 항목이 보여야 합니다.
+
+되돌리기: `sudo apt install --allow-downgrades $(awk '{print $1"="$2}' versions-before.txt)`. 이전 버전을 아직 내려받을 수 있을 때만 됩니다. Sury는 이 배포판들을 더 이상 제공하지 않으므로, 되돌릴 가능성이 있다면 업그레이드 전에 이전 .deb 파일(`/var/cache/apt/archives`)을 따로 보관하세요.
+
+### 체크섬 교차 확인 (선택)
+
+각 릴리스의 SHA256SUMS는 이 저장소에도 커밋되어 있어서, 릴리스 파일이 바뀌면 git 기록과 맞지 않게 됩니다:
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/ngenieer/php-eol-backports/main/checksums/$TAG.sha256" | diff - SHA256SUMS && echo same
+```
+
 ## 상태
 
 | 브랜치 | 기준 버전 | 상태 | 출처 |
@@ -34,8 +108,6 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 
 빌드된 .deb는 Release [`deb-buster-php7.3-7.3.33-35-sizlon1`](../../releases/tag/deb-buster-php7.3-7.3.33-35-sizlon1), [`deb-bionic-php7.2-7.2.34-66-sizlon1`](../../releases/tag/deb-bionic-php7.2-7.2.34-66-sizlon1)에 있습니다 (SHA256SUMS 포함, 서명 없음).
 
-같은 체크섬을 [`checksums/`](checksums)에도 커밋해 두었으므로, 릴리스 파일을 git 기록과도 대조할 수 있습니다. 내려받은 디렉터리에서 `sha256sum -c <저장소 경로>/checksums/<tag>.sha256 --ignore-missing`을 실행하세요.
-
 ### Debian·Ubuntu 사용자
 배포판 기본 PHP를 쓴다면 벤더 수정이 이미 있습니다. 이 레포보다 벤더 패키지를 먼저 쓰세요.
 
@@ -44,7 +116,7 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 | Debian 9 php7.0 / Debian 10 php7.3 | Freexian ELTS 저장소 (`7.0.33-0+deb9u26`, `7.3.31-1~deb10u16`) |
 | Ubuntu 16.04 php7.0 / 18.04 php7.2 | Ubuntu Pro ESM (`+esm22`, `+esm14`) |
 | Sury, Debian 11 이상 / Ubuntu 22.04 이상 | packages.sury.org, `ppa:ondrej/php` (php7.3 -35, 7.2 -66, 7.1 -80, 7.0 -92 이상) |
-| **Sury, Debian 9·10 / Ubuntu 16.04~20.04** | **없음** (Sury가 이 배포판들의 빌드를 중단함) → 위 재빌드 패키지 |
+| **Sury, Debian 9·10 / Ubuntu 16.04~20.04** | **없음** (Sury가 이 배포판들의 빌드를 중단함). 여기에 재빌드 패키지가 있는 것은 Debian 10 php7.3과 Ubuntu 18.04 php7.2뿐이고, 나머지는 [소스로 빌드](#소스로-빌드) 참고 |
 
 ## 원칙
 
@@ -55,15 +127,21 @@ PHP2Shell(CVE-2026-109618, CVE-2026-109619) 수정을 **공식 지원이 끝난 
 
 **적용 전 반드시 [EXPECTED-CHANGES.md](EXPECTED-CHANGES.md)를 읽으세요.** 공식 패치와 마찬가지로 세션 업로드 진행 기능이 꺼지고, 메모리 한도 초과 시 프로세스가 즉시 종료됩니다.
 
-## 사용법
+## 소스로 빌드
+
+패치는 각 브랜치의 마지막 릴리스(7.3.33, 7.2.34, 7.1.33, 7.0.33)에 맞춰 만들었습니다. 같은 브랜치라도 이전 릴리스에는 적용되지 않을 수 있으니, 먼저 마지막 릴리스로 옮기세요.
 
 ```bash
-# 1. 현재 쓰는 것과 같은 버전의 PHP 소스를 준비
+# 1. 지금 쓰는 PHP의 configure 옵션 확인
+php -i | grep 'Configure Command'
+# 2. 브랜치의 마지막 릴리스 소스(https://www.php.net/releases/)를 받아 패치 적용
 tar xf php-7.3.33.tar.gz
-# 2. 패치 적용
-scripts/apply.sh php-7.3.33
-# 3. 기존 configure 옵션 그대로 다시 빌드 후 설치, 모든 PHP 워커 재시작
+git clone https://github.com/ngenieer/php-eol-backports
+php-eol-backports/scripts/apply.sh php-7.3.33
+# 3. 같은 옵션으로 configure 후 make && make install, 모든 PHP 워커(php-fpm, Apache) 재시작
 ```
+
+공식 `php:7.x-fpm` Docker 이미지는 [docker/Dockerfile](docker/Dockerfile)에서 이미지 자체의 PHP를 원래 configure 옵션 그대로, 패치를 넣어 다시 빌드하는 방법을 볼 수 있습니다. 테스트용 이미지이므로 운영 환경에서는 archive.debian.org `trusted=yes` 설정을 빼세요.
 
 배포판 패키지(apt/yum)로 설치한 PHP라면 배포판·LTS 벤더의 보안 공지를 먼저 확인하세요.
 
