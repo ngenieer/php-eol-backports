@@ -3,7 +3,7 @@
 # EOL distro whose Sury repository is gone, twice: as released (fix) and without the bailout
 # patch (base), so verify.sh can compare like with like.
 # Usage: deb/build.sh <buster|bionic> <x.y> <out-dir>
-#   e.g. deb/build.sh buster 7.3 out/buster-7.3   ->  out/buster-7.3/{fix,base}/*.deb
+#   e.g. deb/build.sh buster 7.3 out/buster-7.3   ->  out/buster-7.3/{fix,base}/*.deb, out/buster-7.3/fix/SHA256SUMS
 set -euo pipefail
 DIST="${1:?usage: build.sh <buster|bionic> <x.y> <out-dir>}"; VER="${2:?}"; OUT="${3:?}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -42,6 +42,11 @@ docker run --rm -v "$OUT:/out" -e VER="$VER" -e DIST="$DIST" -e NEWV="$NEWV" "pe
     mv debian/changelog.new debian/changelog
     DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" dpkg-buildpackage -us -uc -b >/tmp/build-$t.log 2>&1 || { tail -40 /tmp/build-$t.log; exit 1; }
     mkdir -p /out/$t; mv /tmp/*.deb /out/$t/; cp /tmp/build-$t.log /out/
-    echo "$t: $(ls /out/$t | wc -l) packages, $v"
+    echo "$t: $(ls /out/$t/*.deb | wc -l) packages, $v"
   done
+  # SHA256SUMS for the release, covering only this build. GitHub stores asset names with "~"
+  # replaced by ".", so list the names a download will have.
+  cd /out/fix
+  sha256sum $(ls *.deb | grep -F "$NEWV+sizlon1") | sed "s/~/./g" > SHA256SUMS
+  echo "fix: SHA256SUMS, $(wc -l < SHA256SUMS) files"
 '

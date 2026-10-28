@@ -21,7 +21,7 @@ The servers with no way to get the fix are **end-of-life distribution releases w
 | Debian 10 buster | Sury php7.3 `7.3.33-35` | `7.3.33-35+0~20261021.144+debian10~1.gbpecf76f+sizlon1` | 39 (+ 36 dbgsym) |
 | Ubuntu 18.04 bionic | Sury php7.2 `7.2.34-66` | `7.2.34-66+0~20261021.122+ubuntu18.04~1.gbpe0bcd4+sizlon1` | 39 |
 
-- To reproduce: `deb/build.sh <buster|bionic> <x.y> <out>`, `deb/verify.sh <buster|bionic> <x.y> <out>`. Source versions and SHA256 hashes are pinned in `deb/sources.txt`.
+- To reproduce: `deb/build.sh <buster|bionic> <x.y> <out>`, `deb/verify.sh <buster|bionic> <x.y> <out>`. `build.sh` also writes `<out>/fix/SHA256SUMS` for the release, with the asset names GitHub serves ("~" becomes "."). Source versions and SHA256 hashes are pinned in `deb/sources.txt`.
 - The source was not modified; only one changelog entry was added. For verification, a `+base0` build of the same source with only the PHP2Shell patch removed was also made.
 - The versions are higher than the earlier Sury builds (`-39` etc.) and the distribution packages, so `apt install` upgrades them in place.
 
