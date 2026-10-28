@@ -76,6 +76,8 @@ When a release turns out to be wrong (as `el7-php73-7.3.33-22.sizlon1` did):
 3. Delete the old release's assets (`gh release delete-asset <tag> <file> -y`) so the broken packages can no longer be downloaded, and mark it as a pre-release. Keep the release page and tag: the reports and SECURITY.md refer to them.
 4. Remove `checksums/<old-tag>.sha256` and point the READMEs to the new release.
 
+When a release is replaced but not wrong (as `el7-php73-7.3.33-23.sizlon1` was, when Remi -24 included its extra patch), do the same except step 3's deletion: keep its assets, say in the notice that it remains safe to run, and mark it as a pre-release.
+
 ## Repository rules
 
 - `Protect main`: `main` cannot be force-pushed or deleted.
